@@ -34,6 +34,7 @@ Position will be in 2 x 2 matrix (4 dots).
 Players will take turn to hide and seek for 10 rounds or until one player can find exactly your 4 dot hiding position. 
 
 ---------SCORE---------
+
 Points will be accumulate for each round and the scores will be display on both UCFK's screen after round 10, showing who win and who lose. When a player manages to find total 4 dot of your hiding position, then that player will win automatically. Game ends.
 
 ----ACKNOWLEDGEMENTS----
