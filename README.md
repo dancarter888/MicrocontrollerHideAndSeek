@@ -1,4 +1,4 @@
-ENCE260 ASSIGNMENT | TEAM 444
+ENCE260 ASSIGNMENT | GROUP 444
 
 
 
@@ -11,7 +11,7 @@ communications. Hide and seek. Find where the opponent hide and smash them.
 ------HOW TO COMPILE--------
 
 -Open terminal and navigate to folder that you wish to install game into
--Run command: git clone https://eng-git.canterbury.ac.nz/ence260-ucfk4/team444.git
+-Run command: git clone https://eng-git.canterbury.ac.nz/ence260-2019/group444.git
 -Plug UCFK4 into USB slot
 -Run command: make program
 -Game will start on UCFK4
