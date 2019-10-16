@@ -188,7 +188,10 @@ void stage_choose(phase_t new_stage)
 {
     switch (new_stage) {
 
-
+        case START :
+            tinygl_clear();
+            break;
+            
         case READY :
             tinygl_clear();
             tinygl_text("  READY?");
