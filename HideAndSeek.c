@@ -26,6 +26,7 @@ static int score = 0;
 static phase_t game_stage;             
 static spwm_t led_flashing;              
 
+enum {MAX_ROUND = 10};
 //Display related routines to be run before game loop
 static void display_task_init(void)
 {
