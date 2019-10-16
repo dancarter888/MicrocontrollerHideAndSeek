@@ -23,7 +23,8 @@
 static int tick = 0;
 static int turn_count = 0;
 static int score = 0;
-
+static phase_t game_stage;             
+static spwm_t led_flashing;              
 
 //Display related routines to be run before game loop
 static void display_task_init(void)
@@ -60,9 +61,9 @@ static void button_task_init(void)
 static void led_task_init(void)
 {
     led_init();
-    spwm_period_set(&led_flicker, LED_PERIOD);
-    spwm_duty_set(&led_flicker, LED_DUTY);
-    spwm_reset(&led_flicker);
+    spwm_period_set(&led_flashing, LED_PERIOD);
+    spwm_duty_set(&led_flashing, LED_DUTY);
+    spwm_reset(&led_flashing);
 }
 
 
@@ -70,6 +71,43 @@ static void led_task_init(void)
 static void ir_task_init(void)
 {
     ir_uart_init();
+}
+
+//Access cursor position
+tinygl_point_t get_cursor(void)
+{
+    return cursor;
+}
+
+static void navswitch_task(void)
+{
+    dir_t direction;
+    switch (game_stage) {
+
+        case SELECT :
+            // Handle navswitch events for player select position on board 
+            direction = get_navswitch_dir();
+            if (direction >= DIRECTION_N && direction <= DIRECTION_W){
+                move_player(direction);
+            } else if (direction == DIRECTION_DOWN && place_pos() && !next_player()) {
+                stage_choose(READY);
+            }
+            break;
+
+        case NEXT_TURN :
+            // Handle navswitch events for player moving/firing target cursor
+            direction = get_navswitch_dir();
+            if (direction >= DIRECTION_N && direction <= DIRECTION_W) {
+                move_cursor(direction);
+            } else if (direction == DIRECTION_DOWN && is_valid_overlap()) {
+                ir_send_overlap(get_cursor());
+                stage_choose(HIDEANDSEEK);
+            }
+            break;
+
+        default :
+            break;
+    }
 }
 
 //draws the boxes using the top left coordinate (tlx, tly) and the bottom right coordinate (brx, bry)
