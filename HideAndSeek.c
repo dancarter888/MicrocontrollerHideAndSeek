@@ -375,9 +375,9 @@ void stage_choose(phase_t new_stage)
         case MESSAGE :
             tinygl_clear();
             if (game_stage == SCORE) {
-                tinygl_text("  WIN!  ");
+                tinygl_text(" WIN ");
             } else {
-                tinygl_text("  LOSE! ");
+                tinygl_text(" LOSE ");
             }
             break;
 
