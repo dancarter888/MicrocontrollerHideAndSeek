@@ -184,6 +184,51 @@ void take_turn (int is_seeking) {
 	}
 }
 
+void stage_choose(phase_t new_stage)
+{
+    switch (new_stage) {
+
+
+        case READY :
+            tinygl_clear();
+            tinygl_text("  READY?");
+            break;
+
+        case RESULT_DISPLAY :
+            tinygl_clear();
+            break;
+
+        case SCORE :
+            tinygl_clear();
+            display_result(last_result); //in display_handler
+            break;
+
+        case PAUSE :
+            tinygl_clear();
+            break;
+
+        case MESSAGE :
+            tinygl_clear();
+            if (game_stage == SCORE) {
+                tinygl_text("  WIN!  ");
+            } else {
+                tinygl_text("  LOSE! ");
+            }
+            break;
+
+        case RESTART :
+            tinygl_clear();
+            tinygl_text("  PUSH TO RESTART!");
+            break;
+
+        default :
+            break;
+    }
+
+    stage_tick = 0;
+    game_stage = new_stage;
+}
+
 int main (void)
 {
 	//your main menu will start (havent combined them yet)
