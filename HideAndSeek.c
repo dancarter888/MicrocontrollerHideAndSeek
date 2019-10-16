@@ -22,6 +22,54 @@ static int tick = 0;
 static int turn_count = 0;
 static int score = 0;
 
+
+//Display related routines to be run before game loop
+static void display_task_init(void)
+{
+    initialise_display();
+    stage_choose(START);
+}
+
+
+//Navswitch related routines to be run before game loop
+static void navswitch_task_init(void)
+{
+    navswitch_init();
+}
+
+
+//Game logic tasks to be run before game loop
+static void game_task_init(void)
+{
+    board_init();
+    game_stage = START;
+    tick = 0;
+    stage_tick = 0;
+}
+
+//Button related routines to be run before game loop
+static void button_task_init(void)
+{
+    button_init();
+}
+
+
+//LED related routines to be run before game loop
+static void led_task_init(void)
+{
+    led_init();
+    spwm_period_set(&led_flicker, LED_PERIOD);
+    spwm_duty_set(&led_flicker, LED_DUTY);
+    spwm_reset(&led_flicker);
+}
+
+
+//IR related routines to be run before game loop
+static void ir_task_init(void)
+{
+    ir_uart_init();
+}
+
 //draws the boxes using the top left coordinate (tlx, tly) and the bottom right coordinate (brx, bry)
 //also sets the middle dot inside the box
 void draw_box(int tlx, int tly, int brx, int bry)
@@ -184,6 +232,79 @@ void take_turn (int is_seeking) {
 	}
 }
 
+static void ir_task(void)
+{
+    states status;
+    uint8_t position;
+
+    switch (game_stage) {
+
+        case READY :
+            //Await assignment to player 2 from other player pressing button
+            if (ir_get_status() == PLAYER_TWO_POS) {
+                stage_choose(PAUSE);
+            }
+            break;
+
+        case HIDEANDSEEK :
+            // Await result of overlap
+            status = ir_get_status();
+
+            switch (status) {
+                case OVERLAP_POS :
+                    add_overlap();
+                    last_result = OVERLAP;
+                    stage_choose(RESULT_DISPLAY);
+                    break;
+
+                case MISS_POS :
+                    last_result = MISS;
+                    stage_choose(RESULT_DISPLAY);
+                    break;
+
+                default :
+                    break;
+            }
+            break;
+
+        case PAUSE :
+            //Await overlap position, saved calculate result once received
+            position = ir_get_position();
+            if (position != NO_POSITION) {
+                tinygl_point_t shot = ir_decode_overlap(position);
+                if (is_overlap(shot)) {
+                    ir_send_status(OVERLAP_POS);
+                } else {
+                    ir_send_status(MISS_POS);
+                }
+                stage_choose(MOVE);
+            }
+            break;
+            
+        case MOVE :
+            // Await decision for next game
+            status = ir_get_status();
+            if (status == LOSER) {
+                stage_choose(MESSAGE);
+            } else if (status == KEEP_PLAYING) {
+                stage_choose(NEXT_TURN);
+            }
+            break;
+
+
+        case RESTART :
+            //Await new game signal from other player
+            if(ir_get_status() == RESTART_STATUS){
+                restart_game();
+            }
+            break;
+
+        default :
+            break;
+    }
+}
+
+
 void stage_choose(phase_t new_stage)
 {
     switch (new_stage) {
@@ -230,6 +351,29 @@ void stage_choose(phase_t new_stage)
 
     stage_tick = 0;
     game_stage = new_stage;
+}
+
+
+//Get navswitch move and return associated direction
+dir_t get_navswitch_dir(void)
+{
+    navswitch_update();
+    if (navswitch_push_event_p (NAVSWITCH_WEST)) return DIRECTION_W;
+    if (navswitch_push_event_p (NAVSWITCH_EAST)) return DIRECTION_E;
+    if (navswitch_push_event_p (NAVSWITCH_NORTH)) return DIRECTION_N;
+    if (navswitch_push_event_p (NAVSWITCH_SOUTH)) return DIRECTION_S;
+    if (navswitch_push_event_p (NAVSWITCH_PUSH)) return DIRECTION_DOWN;
+    return DIR_NONE;
+}
+
+
+//Re-start game
+void restart_game(void)
+{
+    tick = 0;
+    stage_tick = 0;
+    draw_box();
+    stage_choose(SELECT);
 }
 
 int main (void)
