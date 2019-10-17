@@ -5,7 +5,8 @@ ENCE260 ASSIGNMENT | GROUP 444
 -------HIDE AND SEEK-------
 
 A Two-player game using the UCFK4 (UC Fun Kit) LED display, navswitch, and IR 
-communications. Hide and seek. Find where the opponent hide and smash them.
+communications. Hide and seek. Both players take turns hiding or seeking.
+The seeker gets points based on how accurate they were at finding the hider.
 
 
 ------HOW TO COMPILE--------
@@ -22,20 +23,19 @@ communications. Hide and seek. Find where the opponent hide and smash them.
 
 --------INSTRUCTION---------
 
-Before the game start, one player will automatically be chosen to hide and the other will be the seeker.
-Once the game start, you must find where to hide on the board by using the navswitch. Pressing the navswitch up and down, left and right to find a hiding location, and confirm the hiding location by using the button located on the other side of the LED array. 
+Before the game starts, one player will automatically be chosen to hide and the other will be the seeker.
+Once the game start, you must find where to hide on the board by using the navswitch. Pressing the navswitch up and down, left and right to find a hiding location, and confirm the hiding location by pressing down on the navswitch.
 
-Other player will need to seek where you are hiding by selecting a location on their board using the same technique. Each player has 5 seconds to select a position to hide and to seek.
-After 5 second, positions of players will be revealed on both UCFK screen. 
+Other player will need to seek where you are hiding by selecting a location on their board using the same technique.
+After the positions of both players have been selected, positions of players will be revealed on both UCFK screen. 
 
-Flashing lights indicate the right position. Solid lights indicate the position that the seeker miss.
-Position will be in 2 x 2 matrix (4 dots).
+Position will be in 3 x 3 matrix (9 dots).
 
-Players will take turn to hide and seek for 10 rounds or until one player can find exactly your 4 dot hiding position. 
+Players will take turn to hide and seek for 4 rounds each. 
 
 ---------SCORE---------
 
-Points will be accumulate for each round and the scores will be display on both UCFK's screen after round 10, showing who win and who lose. When a player manages to find total 4 dot of your hiding position, then that player will win automatically. Game ends.
+Points will be accumulated for each round and the scores will be displayed on both UCFK's screen after round 4, showing who won and who lost. Game ends.
 
 ----ACKNOWLEDGEMENTS----
 
