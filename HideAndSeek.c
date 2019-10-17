@@ -42,6 +42,7 @@ static int turn_count = 0;
 static int score = 0;
 static int p2_score = 0;
 static char score_buffer[3];
+static int replay = 1;
 
 
 
@@ -265,8 +266,7 @@ static int show_main_menu(int is_seeking)
 
     tinygl_text ("HIDE AND SEEK : PUSH TO START ");
 
-    while (1)
-    {
+    while (1) {
         pacer_wait ();
 
         tinygl_update ();
@@ -310,6 +310,50 @@ static void display_win_lose(void)
     }
 }
 
+static void reset_game(void)
+{
+    tick = 0;
+    turn_count = 0;
+    score = 0;
+    p2_score = 0;
+}
+
+
+static int choose_replay(int is_seeking)
+{
+    tinygl_text_mode_set (TINYGL_TEXT_MODE_SCROLL);
+
+    if (is_seeking) {
+        tinygl_text ("UP: REPLAY, DOWN: EXIT");
+        while (1) {
+            pacer_wait ();
+            tinygl_update ();
+            navswitch_update ();
+
+            if (navswitch_push_event_p (NAVSWITCH_WEST)) {
+                ir_uart_putc(1);
+                return 1;
+            } else if (navswitch_push_event_p (NAVSWITCH_EAST)) {
+                ir_uart_putc(0);
+                return 0;
+            }
+        }
+
+    } else {
+        tinygl_text ("OPPONENT CHOOSING");
+        while (1) {
+            pacer_wait ();
+            tinygl_update ();
+            navswitch_update ();
+
+            if (ir_uart_read_ready_p ()) {
+                replay = ir_uart_getc();
+                return replay;
+            }
+        }
+    }
+}
+
 static void start_game(void)
 {
     int is_seeking = 0;
@@ -317,9 +361,8 @@ static void start_game(void)
     is_seeking = show_main_menu(is_seeking);
     tinygl_clear();
 
-
     //while the less than 8 turns have been played (4 turns each)
-    while (turn_count < 2) {
+    while (turn_count < MAX_ROUNDS) {
         take_turn(is_seeking);
         //swap from seeking to hiding (or from hiding to seeking) for the next turn
         is_seeking = !is_seeking;
@@ -329,14 +372,12 @@ static void start_game(void)
     //show the end score using tinygl
     //show player score on player funkit and opponents score on opponent funkit
     display_win_lose();
+    replay = choose_replay(is_seeking);
+    if (replay) {
+        reset_game();
+    }
 }
 
-/**
-static int choose_replay()
-{
-
-}
-*/
 
 int main (void)
 {
@@ -346,13 +387,11 @@ int main (void)
     ir_uart_init();
     pacer_init(PACER_RATE);
 
-    start_game();
-    /**
-    choose_replay();
-    */
+    while (replay == 1) {
+        start_game();
+    }
 
-
-
-
+    tinygl_clear();
+    tinygl_update ();
     return 0;
 }
