@@ -1,6 +1,6 @@
 # File:   Makefile
-# Author: M. P. Hayes, UCECE
-# Date:   12 Sep 2010
+# Authors: Daniel Siemers (45944203) & Ann Ngo (39979230)
+# Date:   18 October 2019
 # Descr:  Makefile for HideAndSeek
 
 # Definitions.
@@ -16,13 +16,28 @@ all: HideAndSeek.out
 
 
 # Compile: create object files from C source files.
-HideAndSeek.o: HideAndSeek.c ../../drivers/avr/system.h ../../utils/pacer.h ../../drivers/navswitch.h ../../utils/tinygl.h ../../drivers/avr/ir_uart.h
+HideAndSeek.o: HideAndSeek.c ../../drivers/avr/system.h ../../utils/pacer.h ../../drivers/navswitch.h ../../utils/tinygl.h ../../drivers/avr/ir_uart.h ../../drivers/led.h HideAndSeek.h nav_controller.h ir_controller.h score_calc.h board_display.h
+	$(CC) -c $(CFLAGS) $< -o $@
+
+nav_controller.o: nav_controller.c ../../utils/pacer.h ../../utils/tinygl.h ../../drivers/navswitch.h nav_controller.h ir_controller.h board_display.h
+	$(CC) -c $(CFLAGS) $< -o $@
+
+ir_controller.o: ir_controller.c ../../drivers/avr/ir_uart.h ir_controller.h
+	$(CC) -c $(CFLAGS) $< -o $@
+
+score_calc.o: score_calc.c score_calc.h
+	$(CC) -c $(CFLAGS) $< -o $@
+
+board_display.o: board_display.c ../../utils/tinygl.h ../../utils/pacer.h ../../drivers/navswitch.h ../../drivers/avr/ir_uart.h board_display.h
 	$(CC) -c $(CFLAGS) $< -o $@
 
 pio.o: ../../drivers/avr/pio.c ../../drivers/avr/pio.h ../../drivers/avr/system.h
 	$(CC) -c $(CFLAGS) $< -o $@
 
 system.o: ../../drivers/avr/system.c ../../drivers/avr/system.h
+	$(CC) -c $(CFLAGS) $< -o $@
+
+led.o: ../../drivers/led.c ../../drivers/avr/pio.h ../../drivers/avr/system.h ../../drivers/led.h
 	$(CC) -c $(CFLAGS) $< -o $@
 
 timer.o: ../../drivers/avr/timer.c ../../drivers/avr/system.h ../../drivers/avr/timer.h
@@ -60,7 +75,7 @@ tinygl.o: ../../utils/tinygl.c ../../drivers/avr/system.h ../../drivers/display.
 
 
 # Link: create ELF output file from object files.
-HideAndSeek.out: HideAndSeek.o pio.o system.o timer.o pacer.o ir_uart.o prescale.o system.o timer0.o usart1.o display.o ledmat.o navswitch.o font.o tinygl.o
+HideAndSeek.out: HideAndSeek.o nav_controller.o ir_controller.o score_calc.o board_display.o pio.o system.o led.o timer.o pacer.o ir_uart.o prescale.o system.o timer0.o usart1.o display.o ledmat.o navswitch.o font.o tinygl.o
 	$(CC) $(CFLAGS) $^ -o $@ -lm
 	$(SIZE) $@
 
