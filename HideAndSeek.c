@@ -30,25 +30,26 @@ void move_player(int tlx, int tly, int brx, int bry, int coords[], int p2_coords
         pacer_wait();
         tinygl_update ();
         navswitch_update ();
+        int pushed = 0;
 
         //all the '&&'s check if the box is at the edge of the LEDMAT and
         //does not let it go past the border
-        if (navswitch_push_event_p (NAVSWITCH_NORTH) && tly != 0){
+        if (navswitch_push_event_p (NAVSWITCH_NORTH) && tly != 0 && pushed == 0){
             tly--;
             bry--;
         }
 
-        if (navswitch_push_event_p (NAVSWITCH_SOUTH) && bry != 6){
+        if (navswitch_push_event_p (NAVSWITCH_SOUTH) && bry != 6 && pushed == 0){
             tly++;
             bry++;
         }
 
-        if (navswitch_push_event_p (NAVSWITCH_EAST) && brx != 4){
+        if (navswitch_push_event_p (NAVSWITCH_EAST) && brx != 4 && pushed == 0){
             tlx++;
             brx++;
         }
 
-        if (navswitch_push_event_p (NAVSWITCH_WEST) && brx != 2){
+        if (navswitch_push_event_p (NAVSWITCH_WEST) && brx != 2 && pushed == 0){
             tlx--;
             brx--;
         }
@@ -59,18 +60,17 @@ void move_player(int tlx, int tly, int brx, int bry, int coords[], int p2_coords
             coords[1] = tly;
             coords[2] = brx;
             coords[3] = bry;
-            p2_coords[0] = tlx;
-            p2_coords[1] = tly;
             ir_send_pos(coords);
+            pushed = 1;
         }
 
-        if (ir_uart_read_ready_p()) {
+        if (ir_uart_read_ready_p() && pushed == 1) {
             ir_recv_pos(p2_coords);
+            break;
         }
 
         tinygl_clear();
 
-        draw_box(p2_coords[0], p2_coords[1], p2_coords[0] + 2, p2_coords[1] + 2);
         draw_box(tlx, tly, brx, bry);
     }
 }
@@ -123,7 +123,7 @@ static void take_turn (int is_seeking) {
     //creates an array of opponents coordinates (only stores p2_tlx, p2_tly)
     //p2_tlx = player2 top left x coordinate
     //p2_tly = player2 top left y coordinate
-    int p2_coords[2];
+    int p2_coords[] = {0, 0};
 
     //initializes everything
 
@@ -137,17 +137,6 @@ static void take_turn (int is_seeking) {
     tly = coords[1];
     brx = coords[2];
     bry = coords[3];
-
-
-        //check if the oppoenent has sent their coords to the player
-        //will store those coordinates in the p2_coords array
-
-        /**
-        //testing by setting the p2 coords manually
-        p2_coords[0] = 1;
-        p2_coords[1] = 4;
-        break;
-        */
 
     //clears the board
     tinygl_clear();
