@@ -1,6 +1,6 @@
 /**
 @file       HideAndSeek.h
-@authors    Daniel Siemers () & Ann Ngo ()
+@authors    Daniel Siemers (45944203) & Ann Ngo (39979230)
 @date       18 October 2019
 @brief      Hide And Seek
             Header file for the primary game module.
@@ -11,33 +11,39 @@
 
 
 /** Library Modules */
-#include <stdlib.h>
 #include "system.h"
 #include "pacer.h"
 #include "navswitch.h"
 #include "ir_uart.h"
 #include "tinygl.h"
-#include "../fonts/font5x7_1.h"
+#include "led.h"
 #include "../fonts/font3x5_1.h"
 
 /** Application Modules */
-//#include "pregame.h"
-
-#define PACER_RATE 500
-#define IR_RATE 2
-#define MESSAGE_RATE 25
-#define LOOP_RATE 300
+#include "nav_controller.h"
+#include "ir_controller.h"
+#include "score_calc.h"
+#include "board_display.h"
 
 #define MAX_ROUNDS 8
-#define PAUSE_TIME 5
 
-//allows to encode coordinates into a single char
-#define ENCODE_POS(tlx, tly) (tlx << 3 | tly)
+//HideAndSeek
+void show_score(void);
 
-//allows to decode char back into coordinates
-#define DECODE_p2tlx(encoded_pos) (encoded_pos >> 3)
-#define DECODE_p2tly(encoded_pos) (encoded_pos & 0x7)
+void add_to_score(int overlap, int is_seeking);
 
-void draw_box(int tlx, int tly, int brx, int bry);
+void scoring(int tlx, int tly, int p2_coords[], int is_seeking);
+
+void wait_for_opponent(int tlx, int tly, int brx, int bry, int p2_coords[]);
+
+void take_turn (int is_seeking);
+
+void display_win_lose(void);
+
+void reset_game(void);
+
+int choose_replay(int is_seeking);
+
+void start_game(void);
 
 #endif
