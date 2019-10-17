@@ -21,7 +21,6 @@
 //#include "pregame.h"
 
 #define PACER_RATE 500
-#define DELAY_RATE 7
 #define IR_RATE 2
 #define MESSAGE_RATE 25
 #define LOOP_RATE 300
@@ -41,6 +40,8 @@
 static int tick = 0;
 static int turn_count = 0;
 static int score = 0;
+static int p2_score = 0;
+static char score_buffer[3];
 
 
 
@@ -71,8 +72,12 @@ static int check_overlap(int tlx, int tly, int p2tlx, int p2tly) {
     return overlap;
 }
 
-static void add_to_score(int overlap) {
-    score += overlap;
+static void add_to_score(int overlap, int is_seeking) {
+    if (is_seeking) {
+        score += overlap;
+    } else if (!is_seeking) {
+        p2_score += overlap;
+    }
 }
 
 //draws the boxes using the top left coordinate (tlx, tly) and the bottom right coordinate (brx, bry)
@@ -135,14 +140,12 @@ static void show_score(void)
 {
     tinygl_init (PACER_RATE);
     tinygl_font_set(&font3x5_1);
-    tinygl_text_speed_set (MESSAGE_RATE/DELAY_RATE);
-    tinygl_text_mode_set (TINYGL_TEXT_MODE_SCROLL);
-     //tinygl_text_dir_set (TINYGL_TEXT_DIR_ROTATE);
+    tinygl_text_speed_set (MESSAGE_RATE);
+    tinygl_text_mode_set (TINYGL_TEXT_MODE_STEP);
 
 
-    char buffer[3];
-    itoa(score, buffer, 10);
-    tinygl_text(buffer);
+    itoa(score, score_buffer, 10);
+    tinygl_text(score_buffer);
 
     tick = 0;
 
@@ -235,15 +238,17 @@ static void take_turn (int is_seeking) {
         draw_box(tlx, tly, brx, bry);
     }
 
+    //make an overlap func to check how many dots overlap
+    overlap = check_overlap(tlx, tly, p2_coords[0], p2_coords[1]);
+
     if (is_seeking) {
-        //make an overlap func to check how many dots overlap
-        overlap = check_overlap(tlx, tly, p2_coords[0], p2_coords[1]);
-
         //make a score function to add to the score
-        add_to_score(overlap);
-
-        show_score();
+        add_to_score(overlap, is_seeking);
+    } else if (!is_seeking) {
+        add_to_score(overlap, is_seeking);
     }
+
+    show_score();
 }
 
 static int show_main_menu(int is_seeking)
@@ -270,13 +275,68 @@ static int show_main_menu(int is_seeking)
 
         if (navswitch_push_event_p (NAVSWITCH_PUSH)) {
             ir_uart_putc(is_seeking);
-            return 1;
+            return is_seeking;
         } else if (ir_uart_read_ready_p()) {
             is_seeking = ir_uart_getc();
             return !is_seeking;
         }
     }
 }
+
+static void display_win_lose(void)
+{
+    tinygl_init (PACER_RATE);
+    tinygl_font_set(&font3x5_1);
+    tinygl_text_speed_set (MESSAGE_RATE);
+    tinygl_text_mode_set (TINYGL_TEXT_MODE_STEP);
+
+    if (score > p2_score) {
+        tinygl_text ("W");
+    } else if (score < p2_score) {
+        tinygl_text ("L");
+    } else {
+        tinygl_text ("T");
+    }
+
+    while (1) {
+        pacer_wait();
+        tinygl_update ();
+
+        tick += 1;
+        if (tick > PAUSE_TIME*2 * PACER_RATE) {
+            tick = 0;
+            break;
+        }
+    }
+}
+
+static void start_game(void)
+{
+    int is_seeking = 0;
+
+    is_seeking = show_main_menu(is_seeking);
+    tinygl_clear();
+
+
+    //while the less than 8 turns have been played (4 turns each)
+    while (turn_count < 2) {
+        take_turn(is_seeking);
+        //swap from seeking to hiding (or from hiding to seeking) for the next turn
+        is_seeking = !is_seeking;
+        turn_count += 1;
+    }
+
+    //show the end score using tinygl
+    //show player score on player funkit and opponents score on opponent funkit
+    display_win_lose();
+}
+
+/**
+static int choose_replay()
+{
+
+}
+*/
 
 int main (void)
 {
@@ -286,23 +346,13 @@ int main (void)
     ir_uart_init();
     pacer_init(PACER_RATE);
 
-    int is_seeking = 1;
+    start_game();
+    /**
+    choose_replay();
+    */
 
 
-    is_seeking = show_main_menu(is_seeking);
-    tinygl_clear();
 
-
-    //while the less than 8 turns have been played (3 turns each)
-    while (turn_count < MAX_ROUNDS) {
-        take_turn(is_seeking);
-        //swap from seeking to hiding (or from hiding to seeking) for the next turn
-        is_seeking = !is_seeking;
-        turn_count += 1;
-    }
-
-    //show the end score using tinygl
-    //show player score on player funkit and opponents score on opponent funkit
 
     return 0;
 }
