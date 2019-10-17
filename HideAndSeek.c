@@ -23,6 +23,7 @@
 static int tick = 0;
 static int turn_count = 0;
 static int score = 0;
+static int8_t rcvChar;
 static phase_t game_stage;             
 static spwm_t led_flashing;              
 
@@ -273,6 +274,16 @@ void take_turn (int is_seeking) {
 	}
 }
 
+states ir_get_status(void)
+{
+    if (ir_uart_read_ready_p ()) {
+        rcvChar =  ir_uart_getc();
+        return rcvChar;
+    }
+
+    return 0;
+}
+
 static void ir_task(void)
 {
     states status;
@@ -289,7 +300,7 @@ static void ir_task(void)
 
         case HIDEANDSEEK :
             // Await result of overlap
-            msg = ir_get_status();
+            status = ir_get_status();
             ir_send_pos();
             stage_choose(RESULT_DISPLAY);
             
@@ -300,12 +311,8 @@ static void ir_task(void)
             //Await overlap position, saved calculate result once received
             position = ir_get_position();
             if (position != NO_POSITION) {
-                tinygl_point_t smash = ir_decode_overlap(position);
-                if (is_overlap(smash)) {
-                    ir_send_status(OVERLAP_POS);
-                } else {
-                    ir_send_status(MISS_POS);
-                }
+                int coords[] smash = ir_recv_pos(position);
+                // add point func here
                 stage_choose(MOVE);
             }
             break;
