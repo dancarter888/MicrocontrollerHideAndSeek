@@ -16,7 +16,7 @@ all: HideAndSeek.out
 
 
 # Compile: create object files from C source files.
-HideAndSeek.o: HideAndSeek.c ../../drivers/avr/system.h ../../utils/pacer.h ../../drivers/navswitch.h ../../utils/tinygl.h ../../drivers/avr/ir_uart.h HideAndSeek.h
+HideAndSeek.o: HideAndSeek.c ../../drivers/avr/system.h ../../utils/pacer.h ../../drivers/navswitch.h ../../utils/tinygl.h ../../drivers/avr/ir_uart.h
 	$(CC) -c $(CFLAGS) $< -o $@
 
 pio.o: ../../drivers/avr/pio.c ../../drivers/avr/pio.h ../../drivers/avr/system.h
