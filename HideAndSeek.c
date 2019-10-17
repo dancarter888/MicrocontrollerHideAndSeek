@@ -24,7 +24,7 @@ void draw_box(int tlx, int tly, int brx, int bry)
 
 //checks for navswitch input and moves based on it
 //if navswitch is pushed, player can no longer move and waits for opponent to push navswitch
-void move_player(int tlx, int tly, int brx, int bry, int coords[]){
+void move_player(int tlx, int tly, int brx, int bry, int coords[], int p2_coords[]){
     while (1)
     {
         pacer_wait();
@@ -59,11 +59,18 @@ void move_player(int tlx, int tly, int brx, int bry, int coords[]){
             coords[1] = tly;
             coords[2] = brx;
             coords[3] = bry;
-            //no longer moving the player
-            break;
+            p2_coords[0] = tlx;
+            p2_coords[1] = tly;
+            ir_send_pos(coords);
+        }
+
+        if (ir_uart_read_ready_p()) {
+            ir_recv_pos(p2_coords);
         }
 
         tinygl_clear();
+
+        draw_box(p2_coords[0], p2_coords[1], p2_coords[0] + 2, p2_coords[1] + 2);
         draw_box(tlx, tly, brx, bry);
     }
 }
@@ -124,31 +131,16 @@ static void take_turn (int is_seeking) {
     tinygl_text_speed_set (MESSAGE_RATE);
 
     //lets the player move
-    move_player(tlx, tly, brx, bry, coords);
+    move_player(tlx, tly, brx, bry, coords, p2_coords);
     //puts the coordinates of the player when they pushed the navswitch, into the coords array
     tlx = coords[0];
     tly = coords[1];
     brx = coords[2];
     bry = coords[3];
 
-    while (1) {
-        pacer_wait();
-        tinygl_update ();
-
-        //slows down the rate a t which the IR sends info as otherwise the LEDMAT messes up
-        tick += 1;
-        if (tick > PACER_RATE/IR_RATE) {
-            //sends the players coordinates to the opponent
-            ir_send_pos(coords);
-            tick = 0;
-        }
 
         //check if the oppoenent has sent their coords to the player
         //will store those coordinates in the p2_coords array
-        if (ir_uart_read_ready_p()) {
-            ir_recv_pos(p2_coords);
-            break;
-        }
 
         /**
         //testing by setting the p2 coords manually
@@ -156,9 +148,6 @@ static void take_turn (int is_seeking) {
         p2_coords[1] = 4;
         break;
         */
-
-        draw_box(tlx, tly, brx, bry);
-    }
 
     //clears the board
     tinygl_clear();
