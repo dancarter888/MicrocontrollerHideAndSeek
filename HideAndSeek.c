@@ -30,7 +30,7 @@ enum {MAX_ROUND = 10};
 //Display related routines to be run before game loop
 static void display_task_init(void)
 {
-    initialise_display();
+    pre_game();
     stage_choose(START);
 }
 
@@ -90,18 +90,18 @@ static void navswitch_task(void)
             direction = get_navswitch_dir();
             if (direction >= DIRECTION_N && direction <= DIRECTION_W){
                 move_player(direction);
-            } else if (direction == DIRECTION_DOWN && place_pos() && !next_player()) {
+            } else if (direction == DIRECTION_DOWN && draw_box()) {
                 stage_choose(READY);
             }
             break;
 
         case NEXT_TURN :
-            // Handle navswitch events for player moving/firing target cursor
+            // Handle navswitch events for player 2 to select potion 2 on board
             direction = get_navswitch_dir();
             if (direction >= DIRECTION_N && direction <= DIRECTION_W) {
-                move_cursor(direction);
-            } else if (direction == DIRECTION_DOWN && is_valid_overlap()) {
-                ir_send_overlap(get_cursor());
+                move_player(direction);
+            } else if (direction == DIRECTION_DOWN && identical_matrices()) {
+                ir_send_overlap();
                 stage_choose(HIDEANDSEEK);
             }
             break;
