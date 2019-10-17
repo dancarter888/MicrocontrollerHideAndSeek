@@ -6,7 +6,34 @@
             Primary game module.
 **/
 
-#include "HideAndSeek.h"
+/** Library Modules */
+#include <stdlib.h>
+#include "system.h"
+#include "pacer.h"
+#include "navswitch.h"
+#include "ir_uart.h"
+#include "tinygl.h"
+#include "led.h"
+#include "../fonts/font5x7_1.h"
+#include "../fonts/font3x5_1.h"
+
+/** Application Modules */
+//#include "pregame.h"
+
+#define PACER_RATE 500
+#define IR_RATE 2
+#define MESSAGE_RATE 25
+#define LOOP_RATE 300
+
+#define MAX_ROUNDS 8
+#define PAUSE_TIME 2
+
+//allows to encode coordinates into a single char
+#define ENCODE_POS(tlx, tly) (tlx << 3 | tly)
+
+//allows to decode char back into coordinates
+#define DECODE_p2tlx(encoded_pos) (encoded_pos >> 3)
+#define DECODE_p2tly(encoded_pos) (encoded_pos & 0x7)
 
 
 //keeps track of ticks
@@ -14,66 +41,7 @@ static int tick = 0;
 static int turn_count = 0;
 static int score = 0;
 
-//draws the boxes using the top left coordinate (tlx, tly) and the bottom right coordinate (brx, bry)
-//also sets the middle dot inside the box
-void draw_box(int tlx, int tly, int brx, int bry)
-{
-    tinygl_draw_box(tinygl_point(tlx, tly), tinygl_point(brx, bry), 1);
-    tinygl_pixel_set(tinygl_point(tlx + 1, tly + 1), 1);
-}
 
-//checks for navswitch input and moves based on it
-//if navswitch is pushed, player can no longer move and waits for opponent to push navswitch
-void move_player(int tlx, int tly, int brx, int bry, int coords[], int p2_coords[]){
-    while (1)
-    {
-        pacer_wait();
-        tinygl_update ();
-        navswitch_update ();
-        int pushed = 0;
-
-        //all the '&&'s check if the box is at the edge of the LEDMAT and
-        //does not let it go past the border
-        if (navswitch_push_event_p (NAVSWITCH_NORTH) && tly != 0 && pushed == 0){
-            tly--;
-            bry--;
-        }
-
-        if (navswitch_push_event_p (NAVSWITCH_SOUTH) && bry != 6 && pushed == 0){
-            tly++;
-            bry++;
-        }
-
-        if (navswitch_push_event_p (NAVSWITCH_EAST) && brx != 4 && pushed == 0){
-            tlx++;
-            brx++;
-        }
-
-        if (navswitch_push_event_p (NAVSWITCH_WEST) && brx != 2 && pushed == 0){
-            tlx--;
-            brx--;
-        }
-
-        //saves the position that the box was in when played pushed navswitch
-        if (navswitch_push_event_p (NAVSWITCH_PUSH)){
-            coords[0] = tlx;
-            coords[1] = tly;
-            coords[2] = brx;
-            coords[3] = bry;
-            ir_send_pos(coords);
-            pushed = 1;
-        }
-
-        if (ir_uart_read_ready_p() && pushed == 1) {
-            ir_recv_pos(p2_coords);
-            break;
-        }
-
-        tinygl_clear();
-
-        draw_box(tlx, tly, brx, bry);
-    }
-}
 
 //encodes the coordinates of the box into one character (since you can only send one character over IR)
 //sends the encoded coordinates
@@ -106,6 +74,87 @@ static void add_to_score(int overlap) {
     score += overlap;
 }
 
+//draws the boxes using the top left coordinate (tlx, tly) and the bottom right coordinate (brx, bry)
+//also sets the middle dot inside the box
+void draw_box(int tlx, int tly, int brx, int bry)
+{
+    tinygl_draw_box(tinygl_point(tlx, tly), tinygl_point(brx, bry), 1);
+    tinygl_pixel_set(tinygl_point(tlx + 1, tly + 1), 1);
+}
+
+//checks for navswitch input and moves based on it
+//if navswitch is pushed, player can no longer move and waits for opponent to push navswitch
+void move_player(int tlx, int tly, int brx, int bry, int coords[]){
+    while (1)
+    {
+        pacer_wait();
+        tinygl_update ();
+        navswitch_update ();
+
+        //all the '&&'s check if the box is at the edge of the LEDMAT and
+        //does not let it go past the border
+        if (navswitch_push_event_p (NAVSWITCH_NORTH) && tly != 0){
+            tly--;
+            bry--;
+        }
+
+        if (navswitch_push_event_p (NAVSWITCH_SOUTH) && bry != 6){
+            tly++;
+            bry++;
+        }
+
+        if (navswitch_push_event_p (NAVSWITCH_EAST) && brx != 4){
+            tlx++;
+            brx++;
+        }
+
+        if (navswitch_push_event_p (NAVSWITCH_WEST) && brx != 2){
+            tlx--;
+            brx--;
+        }
+
+        //saves the position that the box was in when played pushed navswitch
+        if (navswitch_push_event_p (NAVSWITCH_PUSH)){
+            coords[0] = tlx;
+            coords[1] = tly;
+            coords[2] = brx;
+            coords[3] = bry;
+            ir_send_pos(coords);
+            break;
+        }
+
+        tinygl_clear();
+
+        draw_box(tlx, tly, brx, bry);
+    }
+}
+
+
+static void show_score(void)
+{
+    tinygl_init (PACER_RATE);
+    tinygl_font_set(&font3x5_1);
+    tinygl_text_speed_set (MESSAGE_RATE/2);
+    tinygl_text_mode_set (TINYGL_TEXT_MODE_SCROLL);
+
+    char buffer[3];
+    itoa(score, buffer, 10);
+    tinygl_text(buffer);
+
+    tick = 0;
+
+    while (1) {
+        pacer_wait();
+        tinygl_update ();
+
+        tick += 1;
+        if (tick > PAUSE_TIME * PACER_RATE) {
+            tick = 0;
+            break;
+        }
+    }
+}
+
 //allows player to take a turn (hide/seek)
 //turns are identical for both players except if you are a seeker, your score can increase
 //if you are a hider, your score will remain the same until you become a seeker
@@ -123,20 +172,44 @@ static void take_turn (int is_seeking) {
     //creates an array of opponents coordinates (only stores p2_tlx, p2_tly)
     //p2_tlx = player2 top left x coordinate
     //p2_tly = player2 top left y coordinate
-    int p2_coords[] = {0, 0};
+    int p2_coords[2] = {-1};
 
     //initializes everything
 
     tinygl_font_set (&font5x7_1);
     tinygl_text_speed_set (MESSAGE_RATE);
+    tinygl_clear();
 
+    //seeker waits for hider to hide
+    while (p2_coords[0] == -1 && is_seeking) {
+        pacer_wait();
+        tinygl_update ();
+
+        if (ir_uart_read_ready_p()) {
+            ir_recv_pos(p2_coords);
+        }
+
+        draw_box(tlx, tly, brx, bry);
+    }
     //lets the player move
-    move_player(tlx, tly, brx, bry, coords, p2_coords);
+    move_player(tlx, tly, brx, bry, coords);
     //puts the coordinates of the player when they pushed the navswitch, into the coords array
     tlx = coords[0];
     tly = coords[1];
     brx = coords[2];
     bry = coords[3];
+
+    //hider waits for seeker
+    while (p2_coords[0] == -1 && !is_seeking) {
+        pacer_wait();
+        tinygl_update ();
+
+        if (ir_uart_read_ready_p()) {
+            ir_recv_pos(p2_coords);
+        }
+
+        draw_box(tlx, tly, brx, bry);
+    }
 
     //clears the board
     tinygl_clear();
@@ -147,7 +220,7 @@ static void take_turn (int is_seeking) {
         pacer_wait();
         tinygl_update ();
 
-        //makes sure both boxes are displayed for 5 seconds
+        //makes sure both boxes are displayed for 2 seconds
         tick += 1;
         if (tick > PAUSE_TIME * PACER_RATE) {
             tick = 0;
@@ -165,6 +238,8 @@ static void take_turn (int is_seeking) {
 
         //make a score function to add to the score
         add_to_score(overlap);
+
+        show_score();
     }
 }
 
@@ -175,19 +250,15 @@ static int show_main_menu(int is_seeking)
 
     navswitch_init ();
 
-    tinygl_font_set (&font3x5_1);
+    tinygl_font_set(&font3x5_1);
     tinygl_text_speed_set (MESSAGE_RATE);
     tinygl_text_mode_set (TINYGL_TEXT_MODE_SCROLL);
     tinygl_text_dir_set (TINYGL_TEXT_DIR_ROTATE);
 
     tinygl_text ("HIDE AND SEEK : PUSH TO START ");
 
-    pacer_init (LOOP_RATE);
-
-    /* Paced loop.  */
     while (1)
     {
-        /* Wait for next tick.  */
         pacer_wait ();
 
         tinygl_update ();
@@ -195,6 +266,7 @@ static int show_main_menu(int is_seeking)
         navswitch_update ();
 
         if (navswitch_push_event_p (NAVSWITCH_PUSH)) {
+            ir_uart_putc(is_seeking);
             return 1;
         } else if (ir_uart_read_ready_p()) {
             is_seeking = ir_uart_getc();
@@ -205,34 +277,17 @@ static int show_main_menu(int is_seeking)
 
 int main (void)
 {
-    system_init ();
-    tinygl_init (PACER_RATE * 2);
-    navswitch_init ();
+    system_init();
+    tinygl_init(PACER_RATE * 2);
+    navswitch_init();
     ir_uart_init();
-    pacer_init (PACER_RATE);
+    pacer_init(PACER_RATE);
 
-    int is_seeking = 0;
-    //your main menu will start (havent combined them yet)
-    /**
+    int is_seeking = 1;
+
+
     is_seeking = show_main_menu(is_seeking);
     tinygl_clear();
-
-    while (is_seeking == 1) {
-        pacer_wait();
-
-        tick += 1;
-        if (tick > 20) {
-            tick = 0;
-            break;
-        }
-
-        ir_uart_putc(is_seeking);
-    }
-    */
-
-
-    // need to choose who starts
-    //We can do this by seeing who pushes start first from the main menu screen you made
 
 
     //while the less than 8 turns have been played (3 turns each)
