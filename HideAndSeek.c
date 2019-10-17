@@ -289,22 +289,10 @@ static void ir_task(void)
 
         case HIDEANDSEEK :
             // Await result of overlap
-            status = ir_get_status();
-
-            switch (status) {
-                case OVERLAP_POS :
-                    add_overlap();
-                    last_result = OVERLAP;
-                    stage_choose(RESULT_DISPLAY);
-                    break;
-
-                case MISS_POS :
-                    last_result = MISS;
-                    stage_choose(RESULT_DISPLAY);
-                    break;
-
-                default :
-                    break;
+            msg = ir_get_status();
+            ir_send_pos();
+            stage_choose(RESULT_DISPLAY);
+            
             }
             break;
 
@@ -312,8 +300,8 @@ static void ir_task(void)
             //Await overlap position, saved calculate result once received
             position = ir_get_position();
             if (position != NO_POSITION) {
-                tinygl_point_t shot = ir_decode_overlap(position);
-                if (is_overlap(shot)) {
+                tinygl_point_t smash = ir_decode_overlap(position);
+                if (is_overlap(smash)) {
                     ir_send_status(OVERLAP_POS);
                 } else {
                     ir_send_status(MISS_POS);
