@@ -21,6 +21,7 @@
 //#include "pregame.h"
 
 #define PACER_RATE 500
+#define DELAY_RATE 7
 #define IR_RATE 2
 #define MESSAGE_RATE 25
 #define LOOP_RATE 300
@@ -134,8 +135,10 @@ static void show_score(void)
 {
     tinygl_init (PACER_RATE);
     tinygl_font_set(&font3x5_1);
-    tinygl_text_speed_set (MESSAGE_RATE/2);
+    tinygl_text_speed_set (MESSAGE_RATE/DELAY_RATE);
     tinygl_text_mode_set (TINYGL_TEXT_MODE_SCROLL);
+     //tinygl_text_dir_set (TINYGL_TEXT_DIR_ROTATE);
+
 
     char buffer[3];
     itoa(score, buffer, 10);
