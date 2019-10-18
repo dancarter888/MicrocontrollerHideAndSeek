@@ -3,7 +3,6 @@ Member 1: Daniel Siemers
 Member 2: Ann Ngo
 
 
-
 -------HIDE AND SEEK-------
 
 A Two-player game using the UCFK4 (UC Fun Kit) LED display, navswitch, and IR
@@ -19,7 +18,6 @@ The seeker gets points based on how accurate they were at finding the hider.
 -Run command: make
 -Run command: make program
 -Game will start on UCFK4
-
 
 
 ------PLAYING THE GAME------
@@ -52,4 +50,5 @@ Points will be accumulated for each round and the scores will be displayed on bo
 
 The implementation of this game relies on multiple drivers, fonts and
 utility programs written by M. Hayes.
+
 
