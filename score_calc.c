@@ -8,6 +8,7 @@
 
 #include "score_calc.h"
 
+//Overlap func to check how many dots overlap
 int check_overlap(int tlx, int tly, int p2tlx, int p2tly)
 {
     int overlap = (3 - abs(tlx - p2tlx)) * (3 - abs(tly - p2tly));
