@@ -9,10 +9,12 @@
 #ifndef NAV_CONTROLLER_H
 #define NAV_CONTROLLER_H
 
+/** Library Modules */
 #include "pacer.h"
 #include "tinygl.h"
 #include "navswitch.h"
 
+/** Application Modules */
 #include "ir_controller.h"
 #include "board_display.h"
 
