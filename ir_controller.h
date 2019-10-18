@@ -9,13 +9,13 @@
 #ifndef IR_CONTROLLER_H
 #define IR_CONTROLLER_H
 
+/** Library Modules */
 #include "ir_uart.h"
 
 #define IR_RATE 2
 
 //allows to encode coordinates into a single char
 #define ENCODE_POS(tlx, tly) (tlx << 3 | tly)
-
 //allows to decode char back into coordinates
 #define DECODE_p2tlx(encoded_pos) (encoded_pos >> 3)
 #define DECODE_p2tly(encoded_pos) (encoded_pos & 0x7)
