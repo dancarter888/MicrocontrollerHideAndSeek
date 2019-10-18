@@ -6,6 +6,7 @@
             Board display header file.
 **/
 
+/** Library Modules */
 #include "tinygl.h"
 #include "pacer.h"
 #include "navswitch.h"
