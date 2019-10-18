@@ -8,35 +8,38 @@
 
 #include "board_display.h"
 
-//draws the boxes using the top left coordinate (tlx, tly) and the bottom right coordinate (brx, bry)
-//also sets the middle dot inside the box
+//Draws the boxes using the top left coordinate (tlx, tly) and the bottom right coordinate (brx, bry)
+//Also sets the middle dot inside the box
 void draw_box(int tlx, int tly, int brx, int bry)
 {
     tinygl_draw_box(tinygl_point(tlx, tly), tinygl_point(brx, bry), 1);
     tinygl_pixel_set(tinygl_point(tlx + 1, tly + 1), 1);
 }
 
+//Displays the position of both players boxes on the screen
 void display_both_boxes(int tlx, int tly, int brx, int bry, int p2_coords[])
 {
     int tick = 0;
+
 
     while (1) {
         pacer_wait();
         tinygl_update ();
 
-        //makes sure both boxes are displayed for 2 seconds
+        //Makes sure both boxes are displayed for PAUSE_TIME
         tick += 1;
         if (tick > PAUSE_TIME * PACER_RATE) {
             tick = 0;
             break;
         }
 
-        //displays both boxes
+        //Displays both boxes
         draw_box(p2_coords[0], p2_coords[1], p2_coords[0] + 2, p2_coords[1] + 2);
         draw_box(tlx, tly, brx, bry);
     }
 }
 
+//Displays the main menu and prompts player to click the navswitch
 int show_main_menu(int is_seeking)
 {
     system_init ();
@@ -56,6 +59,7 @@ int show_main_menu(int is_seeking)
         tinygl_update ();
         navswitch_update ();
 
+        //Decides who is the seeker/hider based on who pushed the navswitch first
         if (navswitch_push_event_p (NAVSWITCH_PUSH)) {
             ir_uart_putc(is_seeking);
             return is_seeking;
