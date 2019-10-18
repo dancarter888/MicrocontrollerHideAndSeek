@@ -8,15 +8,15 @@
 
 #include "ir_controller.h"
 
-//encodes the coordinates of the box into one character (since you can only send one character over IR)
-//sends the encoded coordinates
+//Encodes the coordinates of the box into one character (since you can only send one character over IR)
+//Sends the encoded coordinates
 void ir_send_pos(int coords[])
 {
     char msg = ENCODE_POS(coords[0], coords[1]);
     ir_uart_putc(msg);
 }
 
-//decodes the coordinates of the player's box that was received
+//Decodes the coordinates of the player's box that was received
 void ir_recv_pos(int p2_coords[])
 {
     char msg = ir_uart_getc();
