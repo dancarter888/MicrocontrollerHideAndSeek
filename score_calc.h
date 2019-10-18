@@ -6,6 +6,7 @@
             Score calculation header file.
 **/
 
+/** Library Modules */
 #include <stdlib.h>
 
 #ifndef SCORE_CALC_H
