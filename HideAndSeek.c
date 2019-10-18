@@ -11,9 +11,9 @@
 //keeps track of ticks
 static int tick = 0;
 static int turn_count = 0;
-static int score = 0;
+int score = 0;
 static int p2_score = 0;
-static char score_buffer[3];
+char score_buffer[3];
 static int replay = 1;
 
 void show_score(void)
@@ -67,7 +67,6 @@ void scoring(int tlx, int tly, int p2_coords[], int is_seeking)
     show_score();
 }
 
-
 void wait_for_opponent(int tlx, int tly, int brx, int bry, int p2_coords[])
 {
     while (p2_coords[0] == -1) {
@@ -81,7 +80,6 @@ void wait_for_opponent(int tlx, int tly, int brx, int bry, int p2_coords[])
         draw_box(tlx, tly, brx, bry);
     }
 }
-
 
 //allows player to take a turn (hide/seek)
 //turns are identical for both players except if you are a seeker, your score can increase
