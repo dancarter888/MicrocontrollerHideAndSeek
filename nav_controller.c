@@ -8,7 +8,7 @@
 
 #include "nav_controller.h"
 
-//checks for navswitch input and moves based on it
+//Checks for navswitch input and moves based on it
 //if navswitch is pushed, player can no longer move and waits for opponent to push navswitch
 void move_player(int tlx, int tly, int brx, int bry, int coords[])
 {
@@ -18,7 +18,7 @@ void move_player(int tlx, int tly, int brx, int bry, int coords[])
         tinygl_update ();
         navswitch_update ();
 
-        //all the '&&'s check if the box is at the edge of the LEDMAT and
+        //All the '&&'s check if the box is at the edge of the LEDMAT and
         //does not let it go past the border
         if (navswitch_push_event_p (NAVSWITCH_NORTH) && tly != 0){
             tly--;
@@ -40,7 +40,7 @@ void move_player(int tlx, int tly, int brx, int bry, int coords[])
             brx--;
         }
 
-        //saves the position that the box was in when played pushed navswitch
+        //Saves the position that the box was in when played pushed navswitch
         if (navswitch_push_event_p (NAVSWITCH_PUSH)){
             coords[0] = tlx;
             coords[1] = tly;
